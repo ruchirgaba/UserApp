@@ -1,78 +1,62 @@
-//LoanApplicationService.java
-
-package com.scb.loan.service;
+package com.scb.loan.controller;
 
 import com.scb.loan.model.*;
-import com.scb.loan.repository.LoanApplicationRepository;
+import com.scb.loan.service.LoanApplicationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
-
-@Service
-public class LoanApplicationService {
+@RestController
+@RequestMapping("/api/applications")
+public class LoanApplicationController {
 
     @Autowired
-    private LoanApplicationRepository loanApplicationRepository;
+    private LoanApplicationService loanApplicationService;
 
-    // --- Create New Application ---
-    public LoanApplication createNewApplication() {
-        LoanApplication application = new LoanApplication();
-        return loanApplicationRepository.save(application);
+    // --- Create new application ---
+    @PostMapping("/create")
+    public LoanApplication createApplication() {
+        return loanApplicationService.createNewApplication();
     }
 
     // --- Save Personal Details ---
-    public LoanApplication savePersonalDetails(Long applicationId, PersonalDetails details) {
-        LoanApplication application = getApplicationById(applicationId);
-        details.setLoanApplication(application);
-        application.setPersonalDetails(details);
-        return loanApplicationRepository.save(application);
+    @PostMapping("/{id}/personal-details")
+    public LoanApplication savePersonalDetails(@PathVariable Long id, @RequestBody PersonalDetails details) {
+        return loanApplicationService.savePersonalDetails(id, details);
     }
 
     // --- Save Employment Details ---
-    public LoanApplication saveEmploymentDetails(Long applicationId, EmploymentDetails details) {
-        LoanApplication application = getApplicationById(applicationId);
-        details.setLoanApplication(application);
-        application.setEmploymentDetails(details);
-        return loanApplicationRepository.save(application);
+    @PostMapping("/{id}/employment-details")
+    public LoanApplication saveEmploymentDetails(@PathVariable Long id, @RequestBody EmploymentDetails details) {
+        return loanApplicationService.saveEmploymentDetails(id, details);
     }
 
     // --- Save Loan Details ---
-    public LoanApplication saveLoanDetails(Long applicationId, LoanDetails details) {
-        LoanApplication application = getApplicationById(applicationId);
-        details.setLoanApplication(application);
-        application.setLoanDetails(details);
-        return loanApplicationRepository.save(application);
+    @PostMapping("/{id}/loan-details")
+    public LoanApplication saveLoanDetails(@PathVariable Long id, @RequestBody LoanDetails details) {
+        return loanApplicationService.saveLoanDetails(id, details);
     }
 
     // --- Save Document Details ---
-    public LoanApplication saveDocumentDetails(Long applicationId, DocumentDetails details) {
-        LoanApplication application = getApplicationById(applicationId);
-        details.setLoanApplication(application);
-        application.setDocumentDetails(details);
-        return loanApplicationRepository.save(application);
+    @PostMapping("/{id}/document-details")
+    public LoanApplication saveDocumentDetails(@PathVariable Long id, @RequestBody DocumentDetails details) {
+        return loanApplicationService.saveDocumentDetails(id, details);
     }
 
     // --- Save Existing Loan Details ---
-    public LoanApplication saveExistingLoanDetails(Long applicationId, ExistingLoanDetails details) {
-        LoanApplication application = getApplicationById(applicationId);
-        details.setLoanApplication(application);
-        application.setExistingLoanDetails(details);
-        return loanApplicationRepository.save(application);
+    @PostMapping("/{id}/existing-loan-details")
+    public LoanApplication saveExistingLoanDetails(@PathVariable Long id, @RequestBody ExistingLoanDetails details) {
+        return loanApplicationService.saveExistingLoanDetails(id, details);
     }
 
     // --- Save Reference Details ---
-    public LoanApplication saveReferenceDetails(Long applicationId, ReferenceDetails details) {
-        LoanApplication application = getApplicationById(applicationId);
-        details.setLoanApplication(application);
-        application.setReferenceDetails(details);
-        return loanApplicationRepository.save(application);
+    @PostMapping("/{id}/reference-details")
+    public LoanApplication saveReferenceDetails(@PathVariable Long id, @RequestBody ReferenceDetails details) {
+        return loanApplicationService.saveReferenceDetails(id, details);
     }
 
-    // --- Fetch Application by ID ---
-    public LoanApplication getApplicationById(Long id) {
-        return loanApplicationRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Application not found with id: " + id));
+    // --- Fetch application by ID ---
+    @GetMapping("/{id}")
+    public LoanApplication getApplication(@PathVariable Long id) {
+        return loanApplicationService.getApplicationById(id);
     }
 }
-***********************************************************************
