@@ -1,0 +1,159 @@
+import React, { useState, useEffect } from "react";
+import "../style/LoanApplicationForm.css";
+import HeaderLoggedIn from "./HeaderLoggedIn";
+import Footer from "./FooterLoggedIn";
+import loanApplicationApi from "../services/loanApplicationApi"; // <-- New service
+
+const LoanApplicationForm = () => {
+  const [currentStep, setCurrentStep] = useState(1);
+  const [completedSteps, setCompletedSteps] = useState(new Set());
+  const [showReview, setShowReview] = useState(false);
+  const [allSectionsCompleted, setAllSectionsCompleted] = useState(false);
+  const [editingSection, setEditingSection] = useState(null);
+  const [applicationId, setApplicationId] = useState(null);
+
+  const steps = [
+    { id: 1, title: "Personal Details", key: "personal" },
+    { id: 2, title: "Employment Details", key: "employment" },
+    { id: 3, title: "Loan Details", key: "loan" },
+    { id: 4, title: "Document Upload", key: "documents" },
+    { id: 5, title: "Existing Loans", key: "existing" },
+    { id: 6, title: "References", key: "references" },
+    { id: 7, title: "Review Application", key: "review" }
+  ];
+
+  // ... Rest of your default useState hooks & logic (formData, errors, touched, uploadedFiles, validation, progress, etc.)
+
+  useEffect(() => {
+    if (!applicationId) {
+      // On mount, create a draft application
+      loanApplicationApi.createApplication().then(res => setApplicationId(res.id));
+    }
+  }, []);
+
+  // For all handleNextStep, call the backend to save on each step
+  const handleNextStep = async () => {
+    const currentStepData = steps.find(step => step.id === currentStep);
+    if (currentStepData.key === "review") {
+      handleSubmit();
+      return;
+    }
+    if (!validateStep(currentStepData.key)) {
+      // Show errors
+      const stepFields = getStepFields(currentStepData.key);
+      const newTouched = {};
+      stepFields.forEach(field => { newTouched[field] = true; });
+      setTouched(prev => ({ ...prev, ...newTouched }));
+      return;
+    }
+    // Save step to backend
+    if (applicationId) {
+      switch (currentStepData.key) {
+        case 'personal':
+          await loanApplicationApi.savePersonalDetails(applicationId, extractPersonalDetails(formData));
+          break;
+        case 'employment':
+          await loanApplicationApi.saveEmploymentDetails(applicationId, extractEmploymentDetails(formData));
+          break;
+        case 'loan':
+          await loanApplicationApi.saveLoanDetails(applicationId, extractLoanDetails(formData));
+          break;
+        case 'documents': {
+          // Special: Send as multipart
+          await loanApplicationApi.saveDocuments(applicationId, uploadedFiles, setFormData);
+          break;
+        }
+        case 'existing':
+          await loanApplicationApi.saveExistingLoanDetails(applicationId, extractExistingLoanDetails(formData));
+          break;
+        case 'references':
+          await loanApplicationApi.saveReferenceDetails(applicationId, extractReferenceDetails(formData));
+          break;
+        default: break;
+      }
+    }
+    // Mark as completed and move forward as before
+    const newCompletedSteps = new Set([...completedSteps, currentStep]);
+    setCompletedSteps(newCompletedSteps);
+    if (currentStep === 6) {
+      setShowReview(true);
+      setCurrentStep(7);
+      setAllSectionsCompleted(true);
+    } else if (currentStep < steps.length - 1) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  // ... Rest of your handlers (handlePrevStep, handleEditSection, handleReturnToReview, etc.)
+
+  // Helper functions to extract subsection data from formData:
+  function extractPersonalDetails(formData) {
+    const { fullName, phoneNumber, maritalStatus, panNumber, passportNumber, gender,
+      currentAddress, permanentAddress, dateOfBirth } = formData;
+    return { fullName, phoneNumber, maritalStatus, panNumber, passportNumber, gender,
+      currentAddress, permanentAddress, dateOfBirth };
+  }
+  function extractEmploymentDetails(formData) {
+    const { occupationType, companyName, officeAddress, totalWorkExperience, monthlyCompanyIncome, unemploymentIncome } = formData;
+    return {
+      employmentType: occupationType, // maps to backend
+      employerName: companyName,
+      officeAddress,
+      yearsOfExperience: totalWorkExperience,
+      monthlyIncome: monthlyCompanyIncome,
+      unemploymentIncome,
+      jobTitle: "", // Map job title if used
+    };
+  }
+  function extractLoanDetails(formData) {
+    const { loanAmount, loanDuration, loanPurpose } = formData;
+    return { loanAmount, loanTenure: loanDuration, loanPurpose };
+  }
+  function extractExistingLoanDetails(formData) {
+    return {
+      fullName: formData.existingLoanFullName,
+      loanType: formData.existingLoanType,
+      contactNumber: formData.existingLoanContactNumber,
+      lender: formData.existingLoanLender,
+      email: formData.existingLoanEmail,
+      outstandingAmount: formData.existingLoanOutstandingAmount,
+      address: formData.existingLoanAddress,
+      emiTenure: formData.existingLoanEMITenure
+    };
+  }
+  function extractReferenceDetails(formData) {
+    return {
+      fullName: formData.referenceFullName,
+      relationshipWithApplicant: formData.referenceRelationship,
+      contactNumber: formData.referenceContactNumber,
+      address: formData.referenceAddress
+    };
+  }
+
+  // ... Render methods (renderProgressBar, renderCurrentStep, renderXDetails, etc.), unchanged from your code above
+
+  // On submit (review step)
+  const handleSubmit = async (e) => {
+    if (e) e.preventDefault();
+    // Optionally, set application status as 'SUBMITTED'
+    if (applicationId) {
+      await loanApplicationApi.updateStatus(applicationId, "SUBMITTED");
+      alert("Application submitted successfully!");
+    }
+  };
+
+  // ... Navigation, main render, etc. unchanged from your version
+
+  return (
+    <div className="loan-application-container">
+      <HeaderLoggedIn />
+      <main className="application-main">
+        <div className="container">
+          {/* ... same as your layout code ... */}
+        </div>
+      </main>
+      <Footer />
+    </div>
+  );
+};
+export default LoanApplicationForm;
