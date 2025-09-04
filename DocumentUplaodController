@@ -1,0 +1,30 @@
+@RestController
+@RequestMapping("/api/applications/{id}/document-details")
+public class DocumentUploadController {
+    @Autowired
+    private LoanApplicationService loanApplicationService;
+    @Autowired
+    private DocumentStorageService documentStorageService;
+
+    @PostMapping("/upload")
+    public DocumentDetails uploadDocuments(
+        @PathVariable Long id,
+        @RequestParam("panCard") MultipartFile panCard,
+        @RequestParam("aadharCard") MultipartFile aadharCard,
+        @RequestParam("salarySlips") MultipartFile salarySlips,
+        @RequestParam("bankStatements") MultipartFile bankStatements
+    ) {
+        // Store documents on file system and get path
+        String panCardPath = documentStorageService.storeFile(panCard);
+        String aadhaarCardPath = documentStorageService.storeFile(aadharCard);
+        String salarySlipPath = documentStorageService.storeFile(salarySlips);
+        String bankStatementPath = documentStorageService.storeFile(bankStatements);
+        // Save DB entry for DocumentDetails
+        DocumentDetails details = new DocumentDetails();
+        details.setPanCardPath(panCardPath);
+        details.setAadhaarCardPath(aadhaarCardPath);
+        details.setSalarySlipPath(salarySlipPath);
+        details.setBankStatementPath(bankStatementPath);
+        return loanApplicationService.saveDocumentDetails(id, details);
+    }
+}
