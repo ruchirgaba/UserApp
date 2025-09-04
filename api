@@ -1,0 +1,71 @@
+import axios from "axios";
+
+const API_BASE = "http://localhost:8080/api/applications";
+
+const createApplication = async () => {
+  const { data } = await axios.post(`${API_BASE}/create`);
+  return data;
+};
+
+const savePersonalDetails = async (id, details) => {
+  const { data } = await axios.post(`${API_BASE}/${id}/personal-details`, details);
+  return data;
+};
+const saveEmploymentDetails = async (id, details) => {
+  const { data } = await axios.post(`${API_BASE}/${id}/employment-details`, details);
+  return data;
+};
+const saveLoanDetails = async (id, details) => {
+  const { data } = await axios.post(`${API_BASE}/${id}/loan-details`, details);
+  return data;
+};
+const saveExistingLoanDetails = async (id, details) => {
+  const { data } = await axios.post(`${API_BASE}/${id}/existing-loan-details`, details);
+  return data;
+};
+const saveReferenceDetails = async (id, details) => {
+  const { data } = await axios.post(`${API_BASE}/${id}/reference-details`, details);
+  return data;
+};
+const updateStatus = async (id, status) => {
+  // Add a simple status update if you want
+  await axios.patch(`${API_BASE}/${id}`, { status });
+};
+
+const saveDocuments = async (id, uploadedFiles, setFormData) => {
+  const formDataObj = new FormData();
+  Object.keys(uploadedFiles).forEach(key => {
+    if (uploadedFiles[key]) {
+      formDataObj.append(key, uploadedFiles[key]);
+    }
+  });
+  // Expect backend route to accept multipart/form-data for document upload
+  const { data } = await axios.post(
+    `${API_BASE}/${id}/document-details/upload`,
+    formDataObj,
+    { headers: { "Content-Type": "multipart/form-data" } }
+  );
+  // Save returned file URLs/paths in state if needed for further fetch
+  if (setFormData && data) {
+    setFormData(prev => ({
+      ...prev,
+      panCardPath: data.panCardPath,
+      aadhaarCardPath: data.aadhaarCardPath,
+      salarySlipPath: data.salarySlipPath,
+      bankStatementPath: data.bankStatementPath
+    }));
+  }
+  return data;
+};
+
+const loanApplicationApi = {
+  createApplication,
+  savePersonalDetails,
+  saveEmploymentDetails,
+  saveLoanDetails,
+  saveDocuments,
+  saveExistingLoanDetails,
+  saveReferenceDetails,
+  updateStatus
+};
+export default loanApplicationApi;
