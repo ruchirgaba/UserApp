@@ -1,0 +1,23 @@
+@Service
+public class DocumentStorageService {
+    private final Path fileStorageLocation;
+
+    @Autowired
+    public DocumentStorageService(FileStorageProperties prop) {
+        this.fileStorageLocation = Paths.get(prop.getUploadDir()).toAbsolutePath().normalize();
+        try { Files.createDirectories(this.fileStorageLocation); }
+        catch (Exception ex) { throw new RuntimeException("Could not create storage", ex); }
+    }
+
+    public String storeFile(MultipartFile file) {
+        if (file == null || file.isEmpty()) return null;
+        String fileName = StringUtils.cleanPath(UUID.randomUUID() + "_" + file.getOriginalFilename());
+        try {
+            Path target = this.fileStorageLocation.resolve(fileName);
+            Files.copy(file.getInputStream(), target, StandardCopyOption.REPLACE_EXISTING);
+            return target.toString();
+        } catch (IOException e) {
+            throw new RuntimeException("File save error", e);
+        }
+    }
+}
