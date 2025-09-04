@@ -1,30 +1,41 @@
+package com.scb.Loan_Origination.Loan_Origination.controller;
+
+import com.scb.Loan_Origination.Loan_Origination.model.DocumentDetails;
+import com.scb.Loan_Origination.Loan_Origination.service.DocumentStorageService;
+import com.scb.Loan_Origination.Loan_Origination.service.LoanApplicationService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
 @RestController
 @RequestMapping("/api/applications/{id}/document-details")
+@CrossOrigin(origins="*")
 public class DocumentUploadController {
+
     @Autowired
     private LoanApplicationService loanApplicationService;
+
     @Autowired
     private DocumentStorageService documentStorageService;
 
     @PostMapping("/upload")
     public DocumentDetails uploadDocuments(
-        @PathVariable Long id,
-        @RequestParam("panCard") MultipartFile panCard,
-        @RequestParam("aadharCard") MultipartFile aadharCard,
-        @RequestParam("salarySlips") MultipartFile salarySlips,
-        @RequestParam("bankStatements") MultipartFile bankStatements
+            @PathVariable Long id,
+            @RequestParam("panCard") MultipartFile panCard,
+            @RequestParam("aadharCard") MultipartFile aadharCard,
+            @RequestParam("salarySlips") MultipartFile salarySlips,
+            @RequestParam("bankStatements") MultipartFile bankStatements
     ) {
-        // Store documents on file system and get path
         String panCardPath = documentStorageService.storeFile(panCard);
-        String aadhaarCardPath = documentStorageService.storeFile(aadharCard);
+        String aadharCardPath = documentStorageService.storeFile(aadharCard);
         String salarySlipPath = documentStorageService.storeFile(salarySlips);
         String bankStatementPath = documentStorageService.storeFile(bankStatements);
-        // Save DB entry for DocumentDetails
-        DocumentDetails details = new DocumentDetails();
-        details.setPanCardPath(panCardPath);
-        details.setAadhaarCardPath(aadhaarCardPath);
-        details.setSalarySlipPath(salarySlipPath);
-        details.setBankStatementPath(bankStatementPath);
-        return loanApplicationService.saveDocumentDetails(id, details);
+
+        DocumentDetails documentDetails = new DocumentDetails();
+        documentDetails.setPanCardPath(panCardPath);
+        documentDetails.setAadhaarCardPath(aadharCardPath);
+        documentDetails.setSalarySlipPath(salarySlipPath);
+        documentDetails.setBankStatementPath(bankStatementPath);
+        return loanApplicationService.saveDocumentDetails(id, documentDetails);
     }
 }
