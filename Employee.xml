@@ -1,0 +1,20 @@
+<company>
+    <employee>
+        <id>101</id>
+        <name>Ruchir Gaba</name>
+        <department>Engineering</department>
+        <salary>75000</salary>
+    </employee>
+    <employee>
+        <id>102</id>
+        <name>Nishank Arora</name>
+        <department>Marketing</department>
+        <salary>65000</salary>
+    </employee>
+    <employee>
+        <id>103</id>
+        <name>Aryan Sharma</name>
+        <department>HR</department>
+        <salary>55000</salary>
+    </employee>
+</company>
